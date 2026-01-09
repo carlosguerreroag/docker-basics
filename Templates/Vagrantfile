@@ -1,34 +1,37 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
-
-# DEFINIR VARIABLES GLOBALES
+ 
 Vagrant.configure("2") do |config|
 
-  common_cpus = 1
-  common_ram = 1024
-  common_box = "ubuntu/jammy64"
+# DEFAULT VARIABLES
+  default_cpus = 1
+  default_ram = 1024
+  default_box = "ubuntu/jammy64"
 
-  # DEFINIR ARRAY de INSTANCIAS
+  # DESIRED INSTANCES
   instances = [
-    { name: "zmonitor01", ip: "192.168.56.16", script: "zmonitor01.sh", ram: "2048", cpus: "2" },
-    { name: "db01", ip: "192.168.56.15", script: "db01.sh", box: "centos/stream9", ram: "600" },
-    { name: "memcache01", ip: "192.168.56.14", script: "memcache01.sh", box: "centos/stream9", ram: "600" }, 
-    { name: "rabbitmq01", ip: "192.168.56.13", script: "rabbitmq01.sh", box: "centos/stream9", ram: "600" },
-    { name: "tomcat01", ip: "192.168.56.12", script: "tomcat01.sh", box: "centos/stream9", ram: "800" },
-    { name: "nginx01", ip: "192.168.56.11", script: "nginx01.sh", ram: "800" }
+    { name: "docker01", ip: "192.168.56.16", script: "docker01.sh", ports: [{ guest: 80, host: 8080 },{guest: 90, host: 8090}]}
   ]
 
-  # DEFINIR BUCLE PARA ITERAR SOBRE EL ARRAY Y CONSTRUIR CADA INSTANCIA
+  # VAGRANTFILE BODY 
   instances.each do |instance|
     config.vm.define instance[:name] do |specs|
       specs.vm.network "private_network", ip: instance[:ip]
+      if instance[:ports]
+        instance[:ports].each do |p|
+          specs.vm.network "forwarded_port",
+            guest: p[:guest],
+            host: p[:host],
+            auto_correct: true
+        end
+      end
       specs.vm.hostname = instance[:name]
       specs.vm.provider "virtualbox" do |vb|
-        vb.cpus = instance[:cpus] || common_cpus
-        vb.memory = instance[:ram] || common_ram
+        vb.cpus = instance[:cpus] || default_cpus
+        vb.memory = instance[:ram] || default_ram
         vb.gui = instance[:gui] || false
       end
-      specs.vm.box = instance[:box] || common_box
+      specs.vm.box = instance[:box] || default_box
       specs.vm.provision "shell", path: instance[:script]
     end  
   end
