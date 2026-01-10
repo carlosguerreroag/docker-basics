@@ -1,290 +1,84 @@
-# Docker Projects — Scope and Description
+## `/01-basics`
 
-## 1️⃣ Docker Basics — *Hello World*
+1. **Dockerize “Hello World”**
+   Goal: create a Docker image that prints a message to the console when run.
 
-### Project
+2. **Dockerize a minimal Python app**
+   Goal: containerize a minimal Python application exposing a basic HTTP endpoint.
 
-Containerization of a minimal web application.
-
-### Scope
-
-* Creation of a `Dockerfile`
-* Selection of an appropriate base image
-* Exposing the application port
-* Use of environment variables
-* Execution via `docker run`
-
-### Key concepts
-
-* Differences between `CMD` and `ENTRYPOINT`
-* `EXPOSE` does not publish ports
-* Purpose and usage of `.dockerignore`
-
-**Level**: required
+3. **Dockerize a Node.js app**
+   Goal: create a Docker image for a Node.js API listening on a configurable port.
 
 ---
 
-## 2️⃣ Docker & Configuration — *12-Factor App*
+## `/02-configuration`
 
-### Project
-
-Environment-configurable application.
-
-### Scope
-
-* Environment variables
-* `.env` files
-* Environment-specific behavior (dev / prod)
-* No hardcoded configuration
-
-### Key concepts
-
-* Configuration must not be baked into the image
-* Image portability
-
-**Level**: important
+4. **Environment variables and volumes**
+   Goal: run a dockerized application that reads configuration from environment variables and persists data using volumes.
 
 ---
 
-## 3️⃣ Docker Compose — *Multi-service Application*
+## `/03-compose`
 
-### Project
+5. **App + PostgreSQL (Docker Compose)**
+   Goal: run an application and a PostgreSQL database using Docker Compose with persistent storage.
 
-Application with external dependencies.
-
-Examples:
-
-* Backend + PostgreSQL
-* Frontend + API
-
-### Scope
-
-* `docker-compose.yml`
-* Networks
-* Volumes
-* `depends_on`
-* Healthchecks
-
-### Key concepts
-
-* Container-to-container networking
-* Data persistence
-
-**Level**: realistic
+6. **App + Redis (Docker Compose)**
+   Goal: integrate Redis as a cache service for a dockerized application using Docker Compose.
 
 ---
 
-## 4️⃣ Image Optimization — *Production-grade Image*
+## `/04-optimization`
 
-### Project
-
-Docker image optimization.
-
-### Scope
-
-* Multi-stage builds
-* Image size reduction
-* Layer caching
-* Non-root user execution
-
-### Metrics
-
-* Image size under 200 MB
-* Fast and reproducible builds
-
-**Level**: differentiates junior from senior
+7. **Optimized multi-stage build**
+   Goal: build a Docker image using multi-stage builds to minimize the final image size.
 
 ---
 
-## 5️⃣ Security — *Container Hardening*
+## `/05-networking`
 
-### Project
+8. **Frontend + backend + Nginx**
+   Goal: deploy separate frontend and backend services and serve them through Nginx containers.
 
-Basic container security.
-
-### Scope
-
-* Non-root user
-* Image scanning
-* Reduced attack surface
-* Secrets externalized from images
-
-### Key concepts
-
-* Fewer packages result in fewer CVEs
-
-**Level**: DevSecOps fundamentals
+9. **Reverse proxy with multiple services**
+   Goal: configure a reverse proxy that routes traffic to multiple dockerized services based on host or path.
 
 ---
 
-## 6️⃣ Logs & Debugging — *Failure Scenarios*
+## `/06-environments`
 
-### Project
-
-Correct logging strategy.
-
-### Scope
-
-* Logging to stdout / stderr
-* Log rotation
-* Container debugging
-* `docker logs`, `docker exec`
-
-### Key concepts
-
-* No internal file-based logging
-
-**Level**: production-grade requirement
+10. **Development vs production environment**
+    Goal: define separate Docker configurations for development and production using the same codebase.
 
 ---
 
-## 7️⃣ Networking — *Service Communication*
+## `/07-reliability`
 
-### Project
+11. **Healthchecks and restart policies**
+    Goal: add healthchecks to containers and configure automatic restart policies.
 
-Docker networking behavior.
-
-### Scope
-
-* Bridge networks
-* Internal DNS
-* Exposing vs publishing ports
-* Simulating service failure
-
-### Key concepts
-
-* `localhost` is container-scoped
-
-**Level**: critical
+12. **Centralized logging**
+    Goal: centralize logs from multiple containers into a single logging service.
 
 ---
 
-## 8️⃣ Volumes & Data — *Persistent State*
+## `/08-security`
 
-### Project
-
-Data persistence.
-
-### Scope
-
-* Named volumes
-* Bind mounts
-* Backups
-* Data restoration
-
-### Key concepts
-
-* Containers are ephemeral, data is not
-
-**Level**: required
+13. **Docker image hardening**
+    Goal: build secure Docker images applying container hardening best practices.
 
 ---
 
-## 9️⃣ Advanced Build — *Local Pipeline*
+## `/09-ci-cd`
 
-### Project
-
-Build and execution automation.
-
-### Scope
-
-* Build scripts
-* Image tagging
-* Versioning
-* CI/CD readiness
-
-**Level**: bridge to pipelines
+14. **CI pipeline to build and publish images**
+    Goal: implement a CI pipeline that builds, versions, and publishes Docker images automatically.
 
 ---
 
-## 🔟 Final Docker Project
+## `/10-architecture`
 
-### Project
-
-Application ready for Kubernetes.
-
-Requirements:
-
-* Optimized image
-* Environment-based configuration
-* Stateless design
-* Healthchecks
-* Non-root execution
-
-A correct implementation implies Kubernetes readiness without code changes.
-
----
-
-## Docker Golden Rule
-
-> If it cannot be executed with `docker run`, it is not ready.
-
----
-
-# Docker Projects — Objectives Only
-
-## 1️⃣ Basic container
-
-Deliver a web application that can be executed with `docker run` and responds over HTTP.
-
----
-
-## 2️⃣ External configuration
-
-Ensure the same image runs in multiple environments by changing only environment variables.
-
----
-
-## 3️⃣ Application with dependencies
-
-Run an application alongside another service (e.g. a database) without relying on `localhost`.
-
----
-
-## 4️⃣ Persistence
-
-Ensure data survives container destruction and recreation.
-
----
-
-## 5️⃣ Optimized image
-
-Produce a small, fast-building, production-ready image.
-
----
-
-## 6️⃣ Basic security
-
-Run the application without root privileges and with minimal attack surface.
-
----
-
-## 7️⃣ Proper logging
-
-Ensure all relevant output is observable externally without accessing the container filesystem.
-
----
-
-## 8️⃣ Networking
-
-Enable predictable and isolated communication between multiple containers.
-
----
-
-## 9️⃣ Versioning
-
-Make builds identifiable, versioned, and reproducible.
-
----
-
-## 🔟 Kubernetes readiness
-
-Produce a stateless, configurable, secure, and observable image without modifying application code.
-
----
-
-## Final goal
-
-Allow any third party to clone the repository and run the application using Docker only, without additional local dependencies.
+15. **Local microservices architecture**
+    Goal: simulate a complete microservices architecture locally using Docker Compose.
 
 ---
