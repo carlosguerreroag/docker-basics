@@ -1,27 +1,18 @@
-## Docker Basics — *Hello World*
-
-### Description
-
-Containerization of a minimal web application with the goal of running it in an isolated environment and making it accessible over HTTP.
-
-### Scope
-
-* Creation of a `Dockerfile`
-* Selection of an appropriate base image
-* Exposing the application port
-* Use of environment variables
-* Execution via `docker run`
-
-### Key concepts
-
-* Differences between `CMD` and `ENTRYPOINT`
-* `EXPOSE` does not publish ports
-* Purpose and usage of `.dockerignore`
-
+### 📌 Dockerized Nginx Web
 ---
+**Goal:** create a Docker container that serves a web page using Nginx.
 
-### Expected result
+### 👉 Demonstration
+By running the command:
 
-A web application that can be started with `docker run` and responds over HTTP, with no external runtime dependencies.
+```bash
+vagrant up
+```
 
+A virtual machine is created and provisioned with **Docker Engine**.
+Once the provisioning process is complete, an **Nginx container** is automatically executed, exposing a web page through port forwarding.
+
+The application from the container is accessible from outside the VM via a web browser, thanks to port forwarding configured on both the VM and the container.
+
+![demonstration](screenshot.png)
 ---
