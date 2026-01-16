@@ -3,11 +3,11 @@
 1. **Dockerize “Hello World”**
    Goal: create a Docker image that prints a message to the console when run.
 
-2. **Dockerize a minimal Python app**
-   Goal: containerize a minimal Python application exposing a basic HTTP endpoint.
+2. **Dockerize a Nginx Web Server**
+   Goal: containerize a Nginx Service exposing a basic HTTP endpoint.
 
-3. **Dockerize a Node.js app**
-   Goal: create a Docker image for a Node.js API listening on a configurable port.
+3. **Dockerize a Python API**
+   Goal: create a Docker image for a Python API listening on a configurable port.
 
 ---
 

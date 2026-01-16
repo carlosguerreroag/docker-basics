@@ -1,0 +1,38 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+ 
+Vagrant.configure("2") do |config|
+
+# DEFAULT VARIABLES
+  default_cpus = 1
+  default_ram = 1024
+  default_box = "ubuntu/jammy64"
+
+  # DESIRED INSTANCES
+  instances = [
+    { name: "docker01", ip: "192.168.56.16", script: "docker01.sh", ports: [{guest: 3000, host: 3000}]}
+  ]
+
+  # VAGRANTFILE BODY 
+  instances.each do |instance|
+    config.vm.define instance[:name] do |specs|
+      specs.vm.network "private_network", ip: instance[:ip]
+      if instance[:ports]
+        instance[:ports].each do |p|
+          specs.vm.network "forwarded_port",
+            guest: p[:guest],
+            host: p[:host],
+            auto_correct: true
+        end
+      end
+      specs.vm.hostname = instance[:name]
+      specs.vm.provider "virtualbox" do |vb|
+        vb.cpus = instance[:cpus] || default_cpus
+        vb.memory = instance[:ram] || default_ram
+        vb.gui = instance[:gui] || false
+      end
+      specs.vm.box = instance[:box] || default_box
+      specs.vm.provision "shell", path: instance[:script]
+    end  
+  end
+end
