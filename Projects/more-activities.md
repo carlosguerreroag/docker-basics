@@ -1,5 +1,3 @@
----
-
 ### **/04-multi-container-app**
 
 **Goal:** Learn Docker Compose and container interaction.
