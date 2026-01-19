@@ -14,5 +14,7 @@ echo \
 sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 usermod -aG docker vagrant
-docker build -t api /vagrant/ 
-docker run --name api -d -p 3000:3000 api
+docker volume create mysql-vol
+docker volume create postgres-vol
+docker run --name mysql -e MYSQL_ROOT_PASSWORD=test -d -p 3306:3306 -v mysql-vol:/var/lib/mysql mysql:lts
+docker run --name postgres -e POSTGRES_PASSWORD=test -d -p 5432:5432 -v postgres-vol:/var/lib/postgresql postgres:latest 
