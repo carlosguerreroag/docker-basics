@@ -14,7 +14,7 @@ A virtual machine is automatically provisioned using Vagrant. Inside this virtua
 The database containers are configured with:
 * Exposed ports to allow connections from both the host machine and the VM
 * Environment variables for database name, user, and password
-* A Docker volume (and a Bind Mount for the PostgreSQL one) to ensure data persistence across container restarts and VM reboots
+* Docker volumes to ensure data persistence across container restarts and VM reboots
 
 Once the container is running, the database services will be available and ready to accept connections.
 We can verify connectivity from the host machine using:
