@@ -20,7 +20,7 @@ Once the container is running, the database services will be available and ready
 We can verify connectivity from the host machine using:
 
 ```bash
-mysql -h localhost -P 3306 -u user -p
+mysql -h 127.0.0.1 -u root -p
 ```
 
 ```bash
