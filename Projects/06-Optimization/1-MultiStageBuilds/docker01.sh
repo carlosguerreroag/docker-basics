@@ -15,3 +15,6 @@ echo \
 sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 usermod -aG docker vagrant
+docker build --target build_img -t app:build-img /vagrant/.
+docker build --target final_img -t app:final-img /vagrant/.
+docker image ls
