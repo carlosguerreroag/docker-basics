@@ -1,0 +1,60 @@
+version: "3.9"
+services:
+  db:
+    image: mariadb:11
+    command: --skip-name-resolve
+    deploy:
+      replicas: 1 
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+      MYSQL_USER: ftp
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_user_password
+      MYSQL_DATABASE: ftp_users
+    secrets:
+      - mysql_root_password
+      - mysql_user_password
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - internal_net
+
+  ftp-server:
+    image: msrd0/proftpd-mysql
+    deploy:
+      replicas: 1
+    environment:
+        MYSQL_HOST: db 
+        MYSQL_DATABASE: ftp_users
+        MYSQL_USER: ftp
+        MYSQL_PASSWORD: aeph6LouPee>fahf 
+        PROFTPD_USER: proftpd
+        WEB_GROUP: www-data
+    networks:
+      - public_net
+      - internal_net
+    ports:
+      - "2121:21"                 
+      - "20:20"                   
+      - "60000-60100:60000-60100" 
+
+# VOLUMES
+volumes:
+  db_data: # Docker volume for the db (mounted to /var/lib/mysql)
+
+# NETWORKS
+networks:
+  internal_net: # Internal network
+    driver: overlay
+    internal: true
+
+  public_net: # External network
+    driver: overlay
+
+# SECRETS (external, created via docker secret)
+secrets:
+  mysql_root_password:
+    external: true  
+  mysql_user_password:
+    external: true  
+
