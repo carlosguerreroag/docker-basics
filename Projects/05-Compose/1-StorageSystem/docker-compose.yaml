@@ -1,15 +1,15 @@
 version: "3.9"
 services:
+  # DATABASE on INTERNAL NETWORK
   db:
     image: mariadb:11
-    command: --skip-name-resolve
     deploy:
       replicas: 1 
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
-      MYSQL_USER: ftp
+      MYSQL_USER: ftpuser
       MYSQL_PASSWORD_FILE: /run/secrets/mysql_user_password
-      MYSQL_DATABASE: ftp_users
+      MYSQL_DATABASE: ftpdb
     secrets:
       - mysql_root_password
       - mysql_user_password
@@ -19,24 +19,34 @@ services:
     networks:
       - internal_net
 
+  # FTP ENDPOINTS ACCESSIBLE FROM PUBLIC NET
   ftp-server:
-    image: msrd0/proftpd-mysql
+    image: serversideup/proftpd
     deploy:
-      replicas: 1
+      replicas: 1 
+    entrypoint:
+          - /bin/sh
+          - -c
+          - |
+            if [ -f /run/secrets/mysql_user_password ]; then
+              export MYSQL_PASSWORD=$$(cat /run/secrets/mysql_user_password)
+            fi
+            exec /entrypoint.sh proftpd --nodaemon
     environment:
-        MYSQL_HOST: db 
-        MYSQL_DATABASE: ftp_users
-        MYSQL_USER: ftp
-        MYSQL_PASSWORD: aeph6LouPee>fahf 
-        PROFTPD_USER: proftpd
-        WEB_GROUP: www-data
-    networks:
-      - public_net
-      - internal_net
+      FTP_DEBUG_LEVEL: "0"
+      FTP_LOG_LEVEL: "info" 
+      FTP_SQL_USERS_TABLE: "ftpusers"
+      MYSQL_DATABASE: ftpdb 
+      MYSQL_HOST: db
+      MYSQL_USER: ftpuser
+    secrets:
+      - mysql_user_password
     ports:
-      - "2121:21"                 
-      - "20:20"                   
-      - "60000-60100:60000-60100" 
+      - "21:21"
+      - "60000-60100:60000-60100"
+    networks:
+      - internal_net
+      - public_net
 
 # VOLUMES
 volumes:
