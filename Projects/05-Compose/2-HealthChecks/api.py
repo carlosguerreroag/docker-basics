@@ -29,7 +29,7 @@ def index():
         cur.execute("SELECT 1;") # Executes a simple command to check if the db responds
         cur.close() # Closes the cursor (cleanup)
         conn.close() # Closes the connection
-        return "Successfully connected to the DB!"
+        return "API successfully connected to the DB!"
     except Exception as e:
         return f"Connection error: {str(e)}", 500
 
