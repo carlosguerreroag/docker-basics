@@ -1,0 +1,93 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_creds
+      POSTGRES_DB: videos
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    secrets:
+      - postgres_creds
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $DB_USER"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  api:
+    build: ./api
+      #    command: sleep infinity
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_creds
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "80:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - public
+      - internal
+    secrets:
+      - postgres_creds
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      start_period: 5s
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  worker:
+    build: ./worker
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_creds
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+    secrets:
+      - postgres_creds
+    networks:
+      - internal
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+    networks:
+      - internal 
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+secrets:
+  postgres_creds:
+    file: ./postgres-creds
+
+volumes:
+  postgres_data:
+
+networks:
+  internal:
+    internal: true
+  public:
