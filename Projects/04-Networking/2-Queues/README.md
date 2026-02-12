@@ -42,10 +42,10 @@ The workflow is fully asynchronous:
 
    * Listens to the `video_tasks` queue
    * Updates DB status to `processing`
-   * Transcodes the video to multiple resolutions (128p, 360p)
+   * Transcodes the video to multiple resolutions (128p, 360p) and serves the videos under ./uploads folder (via bind mount)
    * Updates DB status to `done` (or `error` if it fails)
 
-4. The client checks statusi and results:
+4. Checking the results:
 
 ## ![demonstration](screenshot.png)
 
