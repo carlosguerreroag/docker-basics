@@ -1,17 +1,3 @@
-## **/04-docker-networking**
-
-**Goal:** Deepen container networking.
-**Project:**
-
-* Create 2 microservices that communicate with each other using different networks (maybe queues)
-* Simulate a microservices architecture with separate front and back ends
-  **Learning:**
-* Types of networks (`bridge`, `overlay`, `host`)
-* Communication between containers
-* Secure connections and internal firewalls
-
----
-
 ## `/05-architecture`
 
 1. **Reverse proxy with multiple services**
