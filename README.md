@@ -6,7 +6,7 @@ The goal is to build practical knowledge by experimenting with progressively mor
 
 ---
 
-## 📂 Repository Structure
+## 📂 Projects folder structure
 
 ```bash
 .
