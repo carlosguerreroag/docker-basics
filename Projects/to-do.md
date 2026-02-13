@@ -10,33 +10,9 @@
 
 ## **/06-reliability**
 
-1. **Centralized logging**
-    Goal: centralize logs from multiple containers into a single logging service.
-
-2. **Logs & Debugging** 
-   Failure Scenarios
-
-### Project
-
-Correct logging strategy.
-
-### Scope
-
-* Logging to stdout / stderr
-* Log rotation
-* Container debugging
-* `docker logs`, `docker exec`
-
-### Key concepts
-
-* No internal file-based logging
-
-**Level**: production-grade requirement
-
 2. **Project:**
-   **Goal:** Implement observability in containers.
+   **Goal:** Implement observability in containers, (+container monitoring).
 
-* Container with Nginx and a container with ELK stack (Elasticsearch + Logstash + Kibana)
 * View centralized logs of your application
   **Learning:**
 * Centralized logging
