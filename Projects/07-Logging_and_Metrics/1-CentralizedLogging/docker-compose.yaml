@@ -1,0 +1,32 @@
+services:
+  app:
+    build: ./
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  
+  loki:
+    image: grafana/loki:latest
+    volumes:
+      - ./loki/config.yaml:/etc/loki/config.yaml
+    command: -config.file=/etc/loki/config.yaml
+    ports:
+      - "3100:3100"
+  
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./promtail/config.yaml:/etc/promtail/config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yaml
+  
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+    - "3000:3000"
+    volumes:
+     - ./grafana/provisioning:/etc/grafana/provisioning

@@ -1,0 +1,22 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "panels": [
+    {
+      "datasource": "Loki",
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "targets": [
+        {
+          "expr": "{job=\"python-app\"}",
+          "refId": "A"
+        }
+      ],
+      "title": "Docker Logs - Python app",
+      "type": "logs"
+    }
+  ],
+  "schemaVersion": 36,
+  "title": "Application Logs",
+  "version": 1
+}
