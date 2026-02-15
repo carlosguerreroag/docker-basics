@@ -1,0 +1,61 @@
+services:
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_DB: microservices
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-creds
+    secrets:
+      - postgres-creds
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+
+  users:
+    build: ./apis/users
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      POSTGRES_USER: admin
+      POSTGRES_DB: microservices
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-creds
+    secrets:
+      - postgres-creds
+    depends_on:
+      - postgres
+    expose:
+      - "8000"
+
+  employees:
+    build: ./apis/employees
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      POSTGRES_USER: admin
+      POSTGRES_DB: microservices
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-creds
+    secrets:
+      - postgres-creds
+    depends_on:
+      - postgres
+    expose:
+      - "8000"
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - users
+      - employees
+
+volumes:
+  postgres_data:
+
+secrets:
+  postgres-creds:
+    file: ./postgres-creds 
