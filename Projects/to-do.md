@@ -2,8 +2,6 @@
 
 1. **Reverse proxy with multiple services**
    Goal: configure a reverse proxy that routes traffic to multiple dockerized services based on host or path.
-
-2. **Local microservices architecture**
    Goal: simulate a complete microservices architecture locally using Docker Compose.
 
 ---
@@ -61,13 +59,7 @@ Build and execution automation.
 
 ---
 
-## **Expert Level**
-
----
-
-## 08. Final Docker Project
-
-### Project
+### **/08-kubernetes-ready**
 
 Application ready for Kubernetes.
 
