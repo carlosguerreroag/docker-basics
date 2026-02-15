@@ -16,6 +16,7 @@ The goal is to build practical knowledge by experimenting with progressively mor
 ├── 04-Networking
 ├── 05-Compose
 ├── 06-Optimization
+├── 07-Logging_and_Metrics
 └── to-do.md
 ```
 
@@ -60,6 +61,11 @@ Inside each directory, individual subprojects explore focused use cases and conf
 * Multi-stage builds
 * Image size reduction
 * Production-ready image strategies
+
+### 07 – Logging and Metrics
+* Centralized container logging and debugging
+* Container observability through metrics
+* Integrations with Grafana
 
 ---
 
