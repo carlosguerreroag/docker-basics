@@ -1,0 +1,51 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+ 
+Vagrant.configure("2") do |config|
+
+# DEFAULT VARIABLES
+  default_cpus = 1
+  default_ram = 1024
+  default_box = "ubuntu/jammy64"
+
+  # DESIRED INSTANCES
+  instances = [
+    { name: "n01", box: "cguerrero/ubuntu-jammy64-docker", ip: "192.168.56.11", script: "swarm.sh" },
+    { name: "n02", box: "cguerrero/ubuntu-jammy64-docker", ip: "192.168.56.12", script: "swarm.sh" },
+    { name: "n03", box: "cguerrero/ubuntu-jammy64-docker", ip: "192.168.56.13", script: "swarm.sh" }
+  ]
+
+  # VAGRANTFILE BODY 
+  instances.each do |instance|
+    config.hostmanager.enabled = true
+    config.hostmanager.manage_guest = true
+    config.hostmanager.manage_host = false
+    config.vm.define instance[:name] do |specs|
+      specs.vm.network "private_network", ip: instance[:ip]
+      if instance[:ports]
+        instance[:ports].each do |p|
+          specs.vm.network "forwarded_port",
+            guest: p[:guest],
+            host: p[:host],
+            auto_correct: true
+        end
+      end
+      specs.vm.hostname = instance[:name]
+      specs.vm.provider "virtualbox" do |vb|
+        vb.cpus = instance[:cpus] || default_cpus
+        vb.memory = instance[:ram] || default_ram
+        vb.gui = instance[:gui] || false
+      end
+      specs.vm.box = instance[:box] || default_box
+      specs.vm.provision "shell", path: instance[:script]
+    end  
+  end
+  config.trigger.after :up do |trigger|
+    trigger.ruby do |env, machine|
+      next unless machine.name == :n03
+      sleep 10
+      output = `vagrant ssh n01 -c 'docker stack deploy -c /vagrant/docker-stack.yaml voteapp' 2>&1`
+      env.ui.info(output)
+    end
+  end
+end
