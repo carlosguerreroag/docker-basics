@@ -1,0 +1,29 @@
+services:
+  traefik:
+    image: traefik:3.7.8
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - traefik
+    ports:
+      - 8000:80   # entrypoint web
+      - 4430:443  # entrypoint websecure
+      - 8080:8080 # dashboard insecure
+
+    volumes:
+      # Zona horaria del host para que los logs tengan hora local
+      - /etc/localtime:/etc/localtime:ro
+
+      # Socket de Docker → Traefik lo usa para descubrir contenedores y sus labels
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+      # Configuración ESTÁTICA de Traefik (entrypoints, providers, certificados, logs, api)
+      - ./config/traefik.yaml:/traefik.yaml:ro
+
+    labels:
+      - "trafeik.enable=true" # Enabled because dashboard
+
+networks:
+  traefik:
