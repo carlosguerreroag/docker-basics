@@ -1,0 +1,34 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+
+  # -- load all dynamic config files from mounted r/o volume --
+  file:
+      directory: /etc/traefik/config/dynamic
+      watch: true
+
+
+entryPoints:
+  web:
+    address: ":80"
+    # -- redirect to https --
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+
+  websecure:
+    address: ":443"
+
+api:
+  dashboard: true
+  insecure: true
+
+log:
+  level: "DEBUG"
