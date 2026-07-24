@@ -1,0 +1,47 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+
+  # -- load all dynamic config files from mounted r/o volume --
+  file:
+      directory: /etc/traefik/config/dynamic
+      watch: true
+
+entryPoints:
+  web:
+    address: ":80"
+    # -- redirect to https --
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+
+  websecure:
+    address: ":443"
+
+api:
+  dashboard: true
+  insecure: true
+
+# -- dns-01 config --
+certificatesResolvers:
+  myresolver:
+    acme:
+      email: fake@email.com # domain owner email (change me in ci) 
+      storage: /etc/traefik/config/letsencrypt/acme.json # acme file path
+
+      # dns provider
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - "1.1.1.1:53" # cloudflare dns ips 
+          - "1.0.0.1:53"
+
+log:
+  level: "DEBUG"
