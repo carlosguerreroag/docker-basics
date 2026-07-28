@@ -1,0 +1,265 @@
+services:
+  traefik:
+    image: traefik:3.7.8
+    container_name: traefik
+    secrets:
+      - cloudflare-token
+      - traefik-dashboard-creds
+      - backend-creds
+    environment:
+      - CF_DNS_API_TOKEN_FILE=/run/secrets/cloudflare-token
+      - MY_DOMAIN=${MY_DOMAIN}
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - traefik
+      - internal
+    ports:
+      - 80:80   # entrypoint web
+      - 443:443  # entrypoint websecure
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+          cpus: 1
+
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/static/traefik.yaml:/traefik.yaml:ro
+
+      # -- bind dynamic config folder to traefik --
+      - ./config/dynamic:/etc/traefik/config/dynamic:ro
+
+      # -- bind letsencrypt acme file to traefik --
+      - ./config/letsencrypt/acme.json:/etc/traefik/config/letsencrypt/acme.json
+
+    labels:
+      - "traefik.enable=true" # Enabled because dashboard
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.${MY_DOMAIN}`)" 
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+
+      # -- enable tls --
+      - "traefik.http.routers.traefik-dashboard.tls=true"
+
+      # -- assign "myresolver" certresolver to traefik router, then request wildcard cert via acme --
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik-dashboard.tls.domains[0].main=${MY_DOMAIN}"
+      - "traefik.http.routers.traefik-dashboard.tls.domains[0].sans=*.${MY_DOMAIN}"
+
+      # -- panel auth, attach a middleware and enable auth (hashed user:pass) --
+      - "traefik.http.routers.traefik-dashboard.middlewares=traefik-dashboard"
+      - "traefik.http.middlewares.traefik-dashboard.basicauth.usersfile=/run/secrets/traefik-dashboard-creds"
+
+# -- just a basic auth middleware --
+  backend1:
+    image: ealen/echo-server:latest
+    deploy:
+      replicas: 1
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
+      interval: 3s
+      timeout: 2s
+      retries: 2
+      start_period: 10s
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend1.rule=Host(`backend1.${MY_DOMAIN}`)"
+      - "traefik.http.routers.backend1.entrypoints=websecure" # Router listens to "web" entrypoint only
+
+      # enable tls
+      - "traefik.http.routers.backend1.tls=true"
+
+      - "traefik.http.services.backend1.loadbalancer.server.port=80" 
+      - "traefik.http.services.backend1.loadbalancer.healthcheck.path=/health"
+      - "traefik.http.services.backend1.loadbalancer.healthcheck.interval=2s"
+
+      # -- sticky --
+      - "traefik.http.services.backend1.loadbalancer.sticky.cookie=true"
+      - "traefik.http.services.backend1.loadbalancer.sticky.cookie.httpOnly=true"
+      - "traefik.http.services.backend1.loadbalancer.sticky.cookie.name=backend1_sticky_cookie"
+
+      # -- assign backend1 router to "myresolver" certresolver which already has the wildcard domain --
+      - "traefik.http.routers.backend1.tls.certresolver=myresolver"
+
+      # -- http basicauth on backend1 -- 
+      - "traefik.http.routers.backend1.middlewares=backend1"
+      - "traefik.http.middlewares.backend1.basicauth.usersfile=/run/secrets/backend-creds"
+
+
+# -- basic auth + source Ip whitelist middlewares --
+  backend2:
+    image: ealen/echo-server:latest
+    deploy:
+      replicas: 1
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
+      interval: 3s
+      timeout: 2s
+      retries: 2
+      start_period: 10s
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend2.rule=Host(`backend2.${MY_DOMAIN}`)"
+      - "traefik.http.routers.backend2.entrypoints=websecure" # Router listens to "web" entrypoint only
+
+      # enable tls
+      - "traefik.http.routers.backend2.tls=true"
+
+      - "traefik.http.services.backend2.loadbalancer.server.port=80" 
+      - "traefik.http.services.backend2.loadbalancer.healthcheck.path=/health"
+      - "traefik.http.services.backend2.loadbalancer.healthcheck.interval=2s"
+
+      # -- sticky --
+      - "traefik.http.services.backend2.loadbalancer.sticky.cookie=true"
+      - "traefik.http.services.backend2.loadbalancer.sticky.cookie.httpOnly=true"
+      - "traefik.http.services.backend2.loadbalancer.sticky.cookie.name=backend2_sticky_cookie"
+
+      # -- assign backend2 router to "myresolver" certresolver which already has the wildcard domain --
+      - "traefik.http.routers.backend2.tls.certresolver=myresolver"
+
+      # -- now we assign 2 middlewares to the router (ip-whitelist, and basicauth) --
+      - "traefik.http.routers.backend2.middlewares=backend2-ipallowlist,backend2-basicauth"
+      # -- limit ipallowlist to only my local ip --
+      - "traefik.http.middlewares.backend2-ipallowlist.ipallowlist.sourcerange=192.168.1.152/32,172.17.0.0/16,172.18.0.0/16"
+      # -- set basic auth for this container on another middleware --
+      - "traefik.http.middlewares.backend2-basicauth.basicauth.usersfile=/run/secrets/backend-creds"
+
+
+# -- forward auth --
+  auth-server-basic:
+    build: ./auth-server/basic
+    container_name: auth-server-basic
+    networks:
+      - internal
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=false"  # No exponer al exterior
+
+  backend3:
+    image: ealen/echo-server:latest
+    deploy:
+      replicas: 1
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
+      interval: 3s
+      timeout: 2s
+      retries: 2
+      start_period: 10s
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend3.rule=Host(`backend3.${MY_DOMAIN}`)"
+      - "traefik.http.routers.backend3.entrypoints=websecure" # Router listens to "web" entrypoint only
+
+      # enable tls
+      - "traefik.http.routers.backend3.tls=true"
+
+      - "traefik.http.services.backend3.loadbalancer.server.port=80" 
+      - "traefik.http.services.backend3.loadbalancer.healthcheck.path=/health"
+      - "traefik.http.services.backend3.loadbalancer.healthcheck.interval=2s"
+
+      # -- sticky --
+      - "traefik.http.services.backend3.loadbalancer.sticky.cookie=true"
+      - "traefik.http.services.backend3.loadbalancer.sticky.cookie.httpOnly=true"
+      - "traefik.http.services.backend3.loadbalancer.sticky.cookie.name=backend3_sticky_cookie"
+
+      # -- assign backend3 router to "myresolver" certresolver which already has the wildcard domain --
+      - "traefik.http.routers.backend3.tls.certresolver=myresolver"
+
+      # -- assign backend3-forwardauth middleware to the router --
+      - "traefik.http.routers.backend3.middlewares=backend3-forwardauth"
+      # -- set forward auth server address & endpoint --
+      - "traefik.http.middlewares.backend3-forwardauth.forwardauth.address=http://auth-server-basic:5000/auth"
+      # -- Lista de headers que el auth-server devuelve y que Traefik debe inyectar en la petición que reenvía al backend --
+      - "traefik.http.middlewares.backend3-forwardauth.forwardauth.authResponseHeaders=X-Auth-User,X-Auth-Role"
+      # -- Confía en los headers  X-Forwarded-*  (útil si el auth-server está detrás de otro proxy) --
+      - "traefik.http.middlewares.backend3-forwardauth.forwardauth.trustForwardHeader=true"
+
+  # -- forward auth + ip whitelist --
+  auth-server-v2:
+    build: ./auth-server/v2
+    container_name: auth-server-v2
+    environment:
+      - AUTH_PUBLIC_URL=https://auth.${MY_DOMAIN}
+    networks:
+      - internal
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth-v2.rule=Host(`auth.${MY_DOMAIN}`)"
+      - "traefik.http.routers.auth-v2.entrypoints=websecure"
+      - "traefik.http.routers.auth-v2.tls=true"
+      - "traefik.http.routers.auth-v2.tls.certresolver=myresolver"
+      - "traefik.http.services.auth-v2.loadbalancer.server.port=5000"
+
+  backend4:
+    image: ealen/echo-server:latest
+    deploy:
+      replicas: 1
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
+      interval: 3s
+      timeout: 2s
+      retries: 2
+      start_period: 10s
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend4.rule=Host(`backend4.${MY_DOMAIN}`)"
+      - "traefik.http.routers.backend4.entrypoints=websecure" # Router listens to "web" entrypoint only
+
+      # enable tls
+      - "traefik.http.routers.backend4.tls=true"
+
+      - "traefik.http.services.backend4.loadbalancer.server.port=80" 
+      - "traefik.http.services.backend4.loadbalancer.healthcheck.path=/health"
+      - "traefik.http.services.backend4.loadbalancer.healthcheck.interval=2s"
+
+      # -- sticky --
+      - "traefik.http.services.backend4.loadbalancer.sticky.cookie=true"
+      - "traefik.http.services.backend4.loadbalancer.sticky.cookie.httpOnly=true"
+      - "traefik.http.services.backend4.loadbalancer.sticky.cookie.name=backend4_sticky_cookie"
+
+      # -- assign backend4 router to "myresolver" certresolver which already has the wildcard domain --
+      - "traefik.http.routers.backend4.tls.certresolver=myresolver"
+
+      # -- assign backend4-forwardauth and ipallowlist middleware to the router --
+      - "traefik.http.routers.backend4.middlewares=backend4-forwardauth,backend4-ipallowlist"
+
+      # -- limit ipwhitelist source to my local ip address --
+      - "traefik.http.middlewares.backend4-ipallowlist.ipallowlist.sourcerange=192.168.1.152/32"
+
+      # -- set forward auth server address & endpoint --
+      - "traefik.http.middlewares.backend4-forwardauth.forwardauth.address=http://auth-server-v2:5000/auth"
+      # -- Lista de headers que el auth-server devuelve y que Traefik debe inyectar en la petición que reenvía al backend --
+      - "traefik.http.middlewares.backend4-forwardauth.forwardauth.authResponseHeaders=X-Auth-User,X-Auth-Role"
+      # -- Confía en los headers  X-Forwarded-*  (útil si el auth-server está detrás de otro proxy) --
+      - "traefik.http.middlewares.backend4-forwardauth.forwardauth.trustForwardHeader=true"
+
+networks:
+  traefik:
+  internal:
+    internal: true
+
+secrets:
+  cloudflare-token:
+    file: ./secrets/cloudflare-token
+
+  traefik-dashboard-creds:
+    file: ./secrets/traefik-dashboard-creds
+
+  backend-creds:
+    file: ./secrets/backend-creds

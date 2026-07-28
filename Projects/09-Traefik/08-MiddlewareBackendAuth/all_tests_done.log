@@ -1,0 +1,172 @@
+-- backend1 experiment --
+
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 12:43:56   
+╰─ curl -I https://backend1.cguerrero.xyz                                                              
+HTTP/2 401 
+content-type: text/plain
+www-authenticate: Basic realm="traefik"
+content-length: 17
+date: Tue, 28 Jul 2026 10:44:11 GMT
+
+
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 12:43:46   
+╰─ curl -I -H "Authorization: Basic $(echo -n backend:backend | base64)" https://backend1.cguerrero.xyz
+HTTP/2 200 
+content-type: application/json; charset=utf-8
+date: Tue, 28 Jul 2026 10:43:56 GMT
+etag: W/"2c6-DB+q6Uq0NIxGA7eYv2Soaj3/IOA"
+set-cookie: backend1_sticky_cookie=3b9c6349bc41b19e; Path=/; HttpOnly
+content-length: 710
+
+-- backend2 experiment --
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                             INT ✘ │ at 13:08:49 
+╰─ curl -I https://backend2.cguerrero.xyz
+HTTP/2 401
+content-type: text/plain
+www-authenticate: Basic realm="traefik"
+content-length: 17
+date: Tue, 28 Jul 2026 11:08:52 GMT
+
+
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 13:08:52 
+╰─ curl -I -H "Authorization: Basic $(echo -n backend:backend | base64)" https://backend2.cguerrero.xyz
+HTTP/2 200
+content-type: application/json; charset=utf-8
+date: Tue, 28 Jul 2026 11:08:57 GMT
+etag: W/"2c6-pMMphLffjSK7J7Cnqa5i4+k3sqg"
+set-cookie: backend2_sticky_cookie=6f77114908665a0a; Path=/; HttpOnly
+content-length: 710
+
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 13:33:34   
+╰─ docker run --rm -it curlimages/curl -I https://backend2.cguerrero.xyz                                                              
+HTTP/2 401 
+content-type: text/plain
+www-authenticate: Basic realm="traefik"
+content-length: 17
+date: Tue, 28 Jul 2026 11:33:37 GMT
+
+
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 13:33:37   
+╰─ docker run --rm -it curlimages/curl -I -H "Authorization: Basic $(echo -n backend:backend | base64)" https://backend2.cguerrero.xyz
+HTTP/2 200 
+content-type: application/json; charset=utf-8
+date: Tue, 28 Jul 2026 11:33:39 GMT
+etag: W/"2c0-e3p/YTjX+LnUPf3lbvDpaeJZAtg"
+set-cookie: backend2_sticky_cookie=6f77114908665a0a; Path=/; HttpOnly
+content-length: 704
+
+-- backend3 experiment --
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 13:49:15   
+╰─ curl -I https://backend3.cguerrero.xyz
+HTTP/2 401 
+content-type: application/json
+date: Tue, 28 Jul 2026 11:49:17 GMT
+server: Werkzeug/3.1.8 Python/3.12.13
+content-length: 32
+
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 13:50:54 
+╰─ curl -I -H "Authorization: Basic $(echo -n admin:admin | base64)" https://backend3.cguerrero.xyz
+HTTP/2 200
+content-type: application/json; charset=utf-8
+date: Tue, 28 Jul 2026 11:51:05 GMT
+etag: W/"2ee-ZRyJOQlp+kHoDo7o3yjiYdk2Mtc"
+set-cookie: backend3_sticky_cookie=9a4a8198fae85208; Path=/; HttpOnly
+content-length: 750
+
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 13:52:12 
+╰─ curl -sH "Authorization: Basic $(echo -n admin:admin | base64)" https://backend3.cguerrero.xyz | jq '.request.headers'
+{
+  "host": "backend3.cguerrero.xyz",
+  "user-agent": "curl/8.21.0",
+  "accept": "*/*",
+  "authorization": "Basic YWRtaW46YWRtaW4=",
+  "x-auth-role": "admin",
+  "x-auth-user": "admin",
+  "x-forwarded-for": "192.168.1.152",
+  "x-forwarded-host": "backend3.cguerrero.xyz",
+  "x-forwarded-port": "443",
+  "x-forwarded-proto": "https",
+  "x-forwarded-server": "4a5901c0a9f9",
+  "x-real-ip": "192.168.1.152",
+  "accept-encoding": "gzip"
+}
+
+-- experiment 4 --
+╰─ curl -I https://backend4.cguerrero.xyz
+HTTP/2 401 
+content-type: application/json
+date: Tue, 28 Jul 2026 12:03:12 GMT
+server: Werkzeug/3.1.8 Python/3.12.13
+content-length: 32
+
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 14:05:13   
+╰─ curl -IH "Authorization: Basic $(echo -n admin:admin2 | base64)" https://backend4.cguerrero.xyz                      
+HTTP/2 401 
+content-type: application/json
+date: Tue, 28 Jul 2026 12:05:25 GMT
+server: Werkzeug/3.1.8 Python/3.12.13
+content-length: 32
+
+
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 14:04:55   
+╰─ curl -sH "Authorization: Basic $(echo -n admin:admin | base64)" https://backend4.cguerrero.xyz | jq '.request.headers'
+{
+  "host": "backend4.cguerrero.xyz",
+  "user-agent": "curl/8.21.0",
+  "accept": "*/*",
+  "authorization": "Basic YWRtaW46YWRtaW4=",
+  "x-auth-role": "admin",
+  "x-auth-user": "admin",
+  "x-forwarded-for": "192.168.1.152",
+  "x-forwarded-host": "backend4.cguerrero.xyz",
+  "x-forwarded-port": "443",
+  "x-forwarded-proto": "https",
+  "x-forwarded-server": "4a5901c0a9f9",
+  "x-real-ip": "192.168.1.152",
+  "accept-encoding": "gzip"
+}
+
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 14:05:25   
+╰─ docker run --rm -it curlimages/curl -I -H "Authorization: Basic $(echo -n admin:admin | base64)" https://backend4.cguerrero.xyz
+HTTP/2 403 
+content-length: 9
+date: Tue, 28 Jul 2026 12:05:50 GMT
+
+-- 5, on v2 auth server (experiment 4 used default/basic auth server) --
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 14:41:25 
+╰─ curl -I -H "Accept: text/html" https://backend4.cguerrero.xyz
+HTTP/2 302
+content-type: text/html; charset=utf-8
+date: Tue, 28 Jul 2026 12:41:29 GMT
+location: https://auth.cguerrero.xyz/login?next=https%3A%2F%2Fbackend4.cguerrero.xyz%2F
+server: Werkzeug/3.1.8 Python/3.12.13
+content-length: 325
+
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 14:43:04 
+─ curl -LH "Accept: text/html" https://backend4.cguerrero.xyz
+
+    <!DOCTYPE html>
+    <html>
+    <head><title>Login</title></head>
+    <body>
+        <h1>Login</h1>
+        <form method="post" action="/login?next=https%3A//backend4.cguerrero.xyz/">
+            <input name="username" placeholder="User" required />
+            <input name="password" type="password" placeholder="Password" required />
+            <button type="submit">Login</button>
+        </form>
+    </body>
+    </html>
+
+╭─  │   ~/Repos/basics/docker-basics/Projects/09-Traefik/08-MiddlewareBackendAuth │ on    main ?1                                                 ✔ │ at 14:44:39   
+╰─ curl -sLH "Authorization: Basic $(echo -n admin:admin | base64)" https://backend4.cguerrero.xyz | jq | head
+{
+  "host": {
+    "hostname": "backend4.cguerrero.xyz",
+    "ip": "::ffff:172.18.0.6",
+    "ips": []
+  },
+  "http": {
+    "method": "GET",
+    "baseUrl": "",
+    "originalUrl": "/",

@@ -3,3 +3,5 @@
 **/*.crt
 **/*.key
 **/*creds*
+**/*tests*.log
+**/*roadmap*.md
